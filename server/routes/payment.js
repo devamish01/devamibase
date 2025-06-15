@@ -2,7 +2,7 @@ import express from "express";
 import Stripe from "stripe";
 import { body, validationResult } from "express-validator";
 import { Order, Cart } from "../models/index.js";
-import { authenticateToken } from "../middleware/auth.js";
+import { authenticateToken, requireAdmin } from "../middleware/auth.js";
 
 const router = express.Router();
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || "sk_test_dummy_key");
