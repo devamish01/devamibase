@@ -11,6 +11,24 @@ class ApiError extends Error {
   }
 }
 
+// Quick check if backend is likely available
+const isBackendLikelyAvailable = (): boolean => {
+  const now = Date.now();
+
+  // If we've never checked or it's been a while, assume it might be available
+  if (backendAvailable === null || now - lastCheck > CHECK_INTERVAL) {
+    return true;
+  }
+
+  return backendAvailable;
+};
+
+// Update backend availability status
+const setBackendAvailability = (available: boolean) => {
+  backendAvailable = available;
+  lastCheck = Date.now();
+};
+
 // Helper to get auth token
 const getAuthToken = () => {
   return localStorage.getItem("auth_token");
@@ -18,7 +36,11 @@ const getAuthToken = () => {
 
 // Import mock data as fallback
 import { mockProducts } from "./mockData";
-import { silentFetch } from "./silentFetch";
+
+// Simple flag to track if backend is available
+let backendAvailable: boolean | null = null;
+let lastCheck = 0;
+const CHECK_INTERVAL = 30000; // 30 seconds
 
 // Helper to make authenticated requests
 const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -35,7 +57,7 @@ const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
   }
 
   try {
-    const response = await silentFetch(url, {
+    const response = await fetch(url, {
       ...options,
       headers,
     });
@@ -50,25 +72,24 @@ const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
       );
     }
 
+    // If we get here, backend is available
+    setBackendAvailability(true);
     return await response.json();
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
     }
 
-    // Check if this is our custom network error from silentFetch
-    if (error instanceof Error && error.message === "NETWORK_ERROR") {
-      // Silently handle network errors when backend is not running
-      throw new ApiError(0, "Backend server is not available");
-    }
-
-    // Check for other network errors as fallback
+    // Mark backend as unavailable on network errors
     if (
       error instanceof TypeError &&
       (error.message.includes("fetch") ||
         error.message.includes("Failed to fetch") ||
-        error.message.includes("NetworkError"))
+        error.message.includes("NetworkError") ||
+        error.message.includes("ERR_NETWORK") ||
+        error.message.includes("ECONNREFUSED"))
     ) {
+      setBackendAvailability(false);
       throw new ApiError(0, "Backend server is not available");
     }
 
@@ -133,6 +154,28 @@ export const productsApi = {
     sortBy?: string;
     sortOrder?: string;
   }) => {
+    // If backend is known to be unavailable, return mock data immediately
+    if (!isBackendLikelyAvailable()) {
+      let filteredProducts = [...mockProducts];
+
+      // Apply filtering if needed
+      if (params?.category) {
+        filteredProducts = filteredProducts.filter(
+          (p) => p.category === params.category,
+        );
+      }
+      if (params?.search) {
+        const search = params.search.toLowerCase();
+        filteredProducts = filteredProducts.filter(
+          (p) =>
+            p.title.toLowerCase().includes(search) ||
+            p.description.toLowerCase().includes(search),
+        );
+      }
+
+      return { products: filteredProducts };
+    }
+
     try {
       const queryParams = new URLSearchParams();
       if (params) {
@@ -171,6 +214,15 @@ export const productsApi = {
   },
 
   getById: async (id: string) => {
+    // If backend is known to be unavailable, return mock data immediately
+    if (!isBackendLikelyAvailable()) {
+      const product = mockProducts.find((p) => p.id === id);
+      if (!product) {
+        throw new ApiError(404, "Product not found");
+      }
+      return product;
+    }
+
     try {
       return await makeRequest(`/products/${id}`);
     } catch (error: any) {
@@ -187,6 +239,12 @@ export const productsApi = {
   },
 
   getCategories: async () => {
+    // If backend is known to be unavailable, return mock data immediately
+    if (!isBackendLikelyAvailable()) {
+      const categories = [...new Set(mockProducts.map((p) => p.category))];
+      return categories;
+    }
+
     try {
       return await makeRequest("/products/data/categories");
     } catch (error: any) {
