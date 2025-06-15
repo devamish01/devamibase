@@ -160,7 +160,6 @@ export const productsApi = {
       }
       throw error;
     }
-    }
   },
 
   getById: async (id: string) => {
