@@ -53,7 +53,6 @@ export default function Home() {
       } finally {
         setLoading(false);
       }
-      }
     };
 
     fetchData();
