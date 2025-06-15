@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
 import { Server, AlertTriangle, CheckCircle, X, RefreshCw } from "lucide-react";
-import { resetBackendAvailability } from "../lib/api";
+import { enableBackendMode, isDemoMode } from "../lib/api";
 
 export default function BackendStatusNotification() {
   const [showNotification, setShowNotification] = useState(false);
@@ -34,12 +34,12 @@ export default function BackendStatusNotification() {
   };
 
   const handleCheckAgain = () => {
-    resetBackendAvailability();
+    enableBackendMode();
     window.location.reload();
   };
 
-  // Don't show if dismissed
-  if (!showNotification || dismissed) {
+  // Don't show if dismissed or not in demo mode
+  if (!showNotification || dismissed || !isDemoMode()) {
     return null;
   }
 
