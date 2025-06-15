@@ -46,6 +46,7 @@ const seedData = async () => {
         technologies: ["React", "Node.js", "MongoDB", "Stripe", "AWS"],
         category: "E-Commerce",
         inventory: 5,
+        sku: "DAV-ECOM-001",
       },
       {
         title: "Business Management System",
@@ -79,6 +80,7 @@ const seedData = async () => {
         ],
         category: "Business Tools",
         inventory: 3,
+        sku: "DAV-BUS-002",
       },
       {
         title: "Custom Mobile App",
@@ -112,6 +114,7 @@ const seedData = async () => {
         ],
         category: "Mobile Apps",
         inventory: 8,
+        sku: "DAV-MOB-003",
       },
       {
         title: "AI-Powered Analytics Dashboard",
@@ -145,6 +148,7 @@ const seedData = async () => {
         ],
         category: "Analytics",
         inventory: 2,
+        sku: "DAV-ANA-004",
       },
       {
         title: "SaaS Startup Platform",
@@ -172,6 +176,7 @@ const seedData = async () => {
         technologies: ["Next.js", "Prisma", "Stripe", "Auth0", "Vercel"],
         category: "SaaS",
         inventory: 1,
+        sku: "DAV-SAAS-005",
       },
       {
         title: "Portfolio Website Template",
@@ -199,6 +204,7 @@ const seedData = async () => {
         technologies: ["React", "Gatsby", "GraphQL", "Netlify CMS"],
         category: "Websites",
         inventory: 10,
+        sku: "DAV-WEB-006",
       },
     ];
 
