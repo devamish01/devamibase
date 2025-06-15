@@ -141,27 +141,25 @@ export const productsApi = {
     } catch (error: any) {
       if (error.status === 0) {
         // Backend not available, use mock data
-        console.warn("⚠️ Backend not available, using mock data");
+        console.info("ℹ️ Using demo data - start backend server for full functionality");
         let filteredProducts = [...mockProducts];
 
         // Apply filtering if needed
         if (params?.category) {
-          filteredProducts = filteredProducts.filter(
-            (p) => p.category === params.category,
-          );
+          filteredProducts = filteredProducts.filter(p => p.category === params.category);
         }
         if (params?.search) {
           const search = params.search.toLowerCase();
-          filteredProducts = filteredProducts.filter(
-            (p) =>
-              p.title.toLowerCase().includes(search) ||
-              p.description.toLowerCase().includes(search),
+          filteredProducts = filteredProducts.filter(p =>
+            p.title.toLowerCase().includes(search) ||
+            p.description.toLowerCase().includes(search)
           );
         }
 
         return { products: filteredProducts };
       }
       throw error;
+    }
     }
   },
 
@@ -171,14 +169,15 @@ export const productsApi = {
     } catch (error: any) {
       if (error.status === 0) {
         // Backend not available, use mock data
-        console.warn("⚠️ Backend not available, using mock data");
-        const product = mockProducts.find((p) => p.id === id);
+        console.info("ℹ️ Using demo data - start backend server for full functionality");
+        const product = mockProducts.find(p => p.id === id);
         if (!product) {
           throw new ApiError(404, "Product not found");
         }
         return product;
       }
       throw error;
+    }
     }
   },
 
@@ -188,11 +187,12 @@ export const productsApi = {
     } catch (error: any) {
       if (error.status === 0) {
         // Backend not available, use mock data
-        console.warn("⚠️ Backend not available, using mock data");
-        const categories = [...new Set(mockProducts.map((p) => p.category))];
+        console.info("ℹ️ Using demo data - start backend server for full functionality");
+        const categories = [...new Set(mockProducts.map(p => p.category))];
         return categories;
       }
       throw error;
+    }
     }
   },
 
