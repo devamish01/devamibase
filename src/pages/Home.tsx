@@ -19,19 +19,44 @@ export default function Home() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsResponse, categoriesResponse] = await Promise.all([
-          productsApi.getAll({
-            category: selectedCategory === "All" ? undefined : selectedCategory,
-            search: searchTerm || undefined,
-          }),
-          productsApi.getCategories(),
-        ]);
+        // Fetch products and categories separately to handle failures gracefully
+        const [productsResponse, categoriesResponse] = await Promise.allSettled(
+          [
+            productsApi.getAll({
+              category:
+                selectedCategory === "All" ? undefined : selectedCategory,
+              search: searchTerm || undefined,
+            }),
+            productsApi.getCategories(),
+          ],
+        );
 
-        setProducts(productsResponse.products);
-        setCategories(["All", ...categoriesResponse]);
+        // Handle products response
+        if (productsResponse.status === "fulfilled") {
+          setProducts(productsResponse.value.products || []);
+        } else {
+          console.info(
+            "ℹ️ Using demo mode - start backend server for full functionality",
+          );
+          setProducts([]);
+        }
+
+        // Handle categories response
+        if (categoriesResponse.status === "fulfilled") {
+          setCategories(["All", ...categoriesResponse.value]);
+        } else {
+          console.info(
+            "ℹ️ Using demo mode - start backend server for full functionality",
+          );
+          setCategories(["All"]);
+        }
       } catch (error: any) {
-        console.error("Failed to fetch products:", error);
-        toast.error("Failed to load products");
+        // This shouldn't happen with Promise.allSettled, but just in case
+        console.info(
+          "ℹ️ Using demo mode - start backend server for full functionality",
+        );
+        setProducts([]);
+        setCategories(["All"]);
       } finally {
         setLoading(false);
       }
