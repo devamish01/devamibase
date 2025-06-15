@@ -1,7 +1,8 @@
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
-import { Server, AlertTriangle, CheckCircle, X } from "lucide-react";
+import { Server, AlertTriangle, CheckCircle, X, RefreshCw } from "lucide-react";
+import { resetBackendAvailability } from "../lib/api";
 
 export default function BackendStatusNotification() {
   const [showNotification, setShowNotification] = useState(false);
@@ -30,6 +31,11 @@ export default function BackendStatusNotification() {
 
   const handleSetupGuide = () => {
     window.open("/setup", "_blank");
+  };
+
+  const handleCheckAgain = () => {
+    resetBackendAvailability();
+    window.location.reload();
   };
 
   // Don't show if dismissed
@@ -78,6 +84,15 @@ export default function BackendStatusNotification() {
                 className="text-blue-700 border-blue-300 hover:bg-blue-100 text-xs"
               >
                 Setup Guide
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={handleCheckAgain}
+                className="text-blue-700 border-blue-300 hover:bg-blue-100 text-xs"
+              >
+                <RefreshCw className="h-3 w-3 mr-1" />
+                Check Again
               </Button>
               <Button
                 variant="outline"
