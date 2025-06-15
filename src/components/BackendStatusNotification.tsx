@@ -1,84 +1,85 @@
 import { useEffect, useState } from "react";
 import { Alert, AlertDescription } from "./ui/alert";
 import { Button } from "./ui/button";
-import { Server, AlertTriangle, CheckCircle } from "lucide-react";
+import { Server, AlertTriangle, CheckCircle, X } from "lucide-react";
 
 export default function BackendStatusNotification() {
-  const [backendStatus, setBackendStatus] = useState<
-    "checking" | "online" | "offline"
-  >("checking");
-  const [showNotification, setShowNotification] = useState(false);
+  const [showNotification, setShowNotification] = useState(true);
+  const [dismissed, setDismissed] = useState(false);
 
+  // Check if user has dismissed this notification in this session
   useEffect(() => {
-    const checkBackendStatus = async () => {
-      try {
-        // Create a timeout promise
-        const timeoutPromise = new Promise((_, reject) =>
-          setTimeout(() => reject(new Error("Timeout")), 3000),
-        );
-
-        // Race between fetch and timeout
-        const response = (await Promise.race([
-          fetch("http://localhost:5000/api/health", {
-            method: "GET",
-            mode: "cors",
-          }),
-          timeoutPromise,
-        ])) as Response;
-
-        if (response.ok) {
-          setBackendStatus("online");
-          setShowNotification(false); // Hide notification if backend comes online
-        } else {
-          setBackendStatus("offline");
-          setShowNotification(true);
-        }
-      } catch (error) {
-        // This will catch network errors, CORS errors, timeouts, etc.
-        setBackendStatus("offline");
-        setShowNotification(true);
-      }
-    };
-
-    // Check status on mount
-    checkBackendStatus();
-
-    // Check every 15 seconds (reduced frequency to avoid spam)
-    const interval = setInterval(checkBackendStatus, 15000);
-    return () => clearInterval(interval);
+    const dismissed = sessionStorage.getItem("backend-notification-dismissed");
+    if (dismissed === "true") {
+      setShowNotification(false);
+      setDismissed(true);
+    }
   }, []);
 
-  if (!showNotification || backendStatus === "online") {
+  const handleDismiss = () => {
+    setShowNotification(false);
+    setDismissed(true);
+    sessionStorage.setItem("backend-notification-dismissed", "true");
+  };
+
+  const handleSetupGuide = () => {
+    window.open("/setup", "_blank");
+  };
+
+  // Don't show if dismissed
+  if (!showNotification || dismissed) {
     return null;
   }
 
   return (
     <div className="fixed top-20 right-4 z-50 max-w-md">
-      <Alert className="border-yellow-200 bg-yellow-50">
-        <AlertTriangle className="h-4 w-4 text-yellow-600" />
-        <AlertDescription className="text-yellow-800">
-          <div className="space-y-2">
-            <p className="font-medium">Backend Server Not Running</p>
-            <p className="text-sm">
-              The frontend is using demo data. To enable full functionality
-              (cart, orders, admin), please start the backend server.
-            </p>
-            <div className="flex items-center space-x-2 pt-2">
+      <Alert className="border-blue-200 bg-blue-50 shadow-lg">
+        <Server className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          <div className="space-y-3">
+            <div className="flex items-start justify-between">
+              <div>
+                <p className="font-medium">Demo Mode</p>
+                <p className="text-sm">
+                  You're viewing demo data. Enable the full eCommerce experience
+                  by starting the backend server.
+                </p>
+              </div>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleDismiss}
+                className="text-blue-600 hover:bg-blue-100 h-6 w-6 p-0 -mt-1"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
+            <div className="text-xs text-blue-700 bg-blue-100 rounded p-2">
+              <strong>Full features include:</strong>
+              <br />
+              • User authentication & cart
+              <br />
+              • Order processing & admin panel
+              <br />• Real-time data persistence
+            </div>
+
+            <div className="flex items-center space-x-2 pt-1">
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => setShowNotification(false)}
-                className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                onClick={handleSetupGuide}
+                className="text-blue-700 border-blue-300 hover:bg-blue-100 text-xs"
               >
-                Dismiss
+                Setup Guide
               </Button>
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() => window.open("/setup", "_blank")}
-                className="text-yellow-700 border-yellow-300 hover:bg-yellow-100"
+                onClick={handleDismiss}
+                className="text-blue-700 border-blue-300 hover:bg-blue-100 text-xs"
               >
-                Setup Guide
+                Continue with Demo
               </Button>
             </div>
           </div>
