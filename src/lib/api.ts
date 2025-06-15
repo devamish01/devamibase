@@ -148,13 +148,16 @@ export const productsApi = {
 
         // Apply filtering if needed
         if (params?.category) {
-          filteredProducts = filteredProducts.filter(p => p.category === params.category);
+          filteredProducts = filteredProducts.filter(
+            (p) => p.category === params.category,
+          );
         }
         if (params?.search) {
           const search = params.search.toLowerCase();
-          filteredProducts = filteredProducts.filter(p =>
-            p.title.toLowerCase().includes(search) ||
-            p.description.toLowerCase().includes(search)
+          filteredProducts = filteredProducts.filter(
+            (p) =>
+              p.title.toLowerCase().includes(search) ||
+              p.description.toLowerCase().includes(search),
           );
         }
 
@@ -170,7 +173,7 @@ export const productsApi = {
     } catch (error: any) {
       if (error.status === 0) {
         // Backend not available, use mock data
-        const product = mockProducts.find(p => p.id === id);
+        const product = mockProducts.find((p) => p.id === id);
         if (!product) {
           throw new ApiError(404, "Product not found");
         }
@@ -186,11 +189,10 @@ export const productsApi = {
     } catch (error: any) {
       if (error.status === 0) {
         // Backend not available, use mock data
-        const categories = [...new Set(mockProducts.map(p => p.category))];
+        const categories = [...new Set(mockProducts.map((p) => p.category))];
         return categories;
       }
       throw error;
-    }
     }
   },
 
