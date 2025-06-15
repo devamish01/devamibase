@@ -169,7 +169,7 @@ export default function Home() {
             >
               {filteredProducts.map((product, index) => (
                 <div
-                  key={product._id}
+                  key={product._id || product.id}
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
