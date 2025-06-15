@@ -42,14 +42,11 @@ app.use(express.urlencoded({ extended: true }));
 // Static files
 app.use("/uploads", express.static("uploads"));
 
+// Import database connection
+import { connectDB } from "./db.js";
+
 // Connect to MongoDB
-mongoose
-  .connect(process.env.MONGODB_URI || "mongodb://localhost:27017/davami", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
-  })
-  .then(() => console.log("✅ MongoDB connected"))
-  .catch((err) => console.error("❌ MongoDB connection error:", err));
+await connectDB();
 
 // Routes
 app.use("/api/auth", authRoutes);
