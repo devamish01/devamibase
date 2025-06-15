@@ -12,27 +12,39 @@ export default function BackendStatusNotification() {
   useEffect(() => {
     const checkBackendStatus = async () => {
       try {
-        const response = await fetch("http://localhost:5000/api/health", {
-          method: "GET",
-          timeout: 5000,
-        } as any);
+        // Create a timeout promise
+        const timeoutPromise = new Promise((_, reject) =>
+          setTimeout(() => reject(new Error("Timeout")), 3000),
+        );
+
+        // Race between fetch and timeout
+        const response = (await Promise.race([
+          fetch("http://localhost:5000/api/health", {
+            method: "GET",
+            mode: "cors",
+          }),
+          timeoutPromise,
+        ])) as Response;
 
         if (response.ok) {
           setBackendStatus("online");
+          setShowNotification(false); // Hide notification if backend comes online
         } else {
           setBackendStatus("offline");
           setShowNotification(true);
         }
       } catch (error) {
+        // This will catch network errors, CORS errors, timeouts, etc.
         setBackendStatus("offline");
         setShowNotification(true);
       }
     };
 
+    // Check status on mount
     checkBackendStatus();
 
-    // Check every 30 seconds
-    const interval = setInterval(checkBackendStatus, 30000);
+    // Check every 15 seconds (reduced frequency to avoid spam)
+    const interval = setInterval(checkBackendStatus, 15000);
     return () => clearInterval(interval);
   }, []);
 
