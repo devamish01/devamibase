@@ -35,9 +35,7 @@ export default function Home() {
         if (productsResponse.status === "fulfilled") {
           setProducts(productsResponse.value.products || []);
         } else {
-          console.info(
-            "ℹ️ Using demo mode - start backend server for full functionality",
-          );
+          // Backend not available, products will be empty and notification will show
           setProducts([]);
         }
 
@@ -45,20 +43,16 @@ export default function Home() {
         if (categoriesResponse.status === "fulfilled") {
           setCategories(["All", ...categoriesResponse.value]);
         } else {
-          console.info(
-            "ℹ️ Using demo mode - start backend server for full functionality",
-          );
+          // Backend not available, use default categories
           setCategories(["All"]);
         }
       } catch (error: any) {
         // This shouldn't happen with Promise.allSettled, but just in case
-        console.info(
-          "ℹ️ Using demo mode - start backend server for full functionality",
-        );
         setProducts([]);
         setCategories(["All"]);
       } finally {
         setLoading(false);
+      }
       }
     };
 
