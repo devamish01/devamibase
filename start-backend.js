@@ -1,8 +1,13 @@
 #!/usr/bin/env node
 
-const { spawn, exec } = require("child_process");
-const fs = require("fs");
-const path = require("path");
+import { spawn, exec } from "child_process";
+import fs from "fs";
+import path from "path";
+import { fileURLToPath } from "url";
+
+// Get current directory in ES modules
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 console.log("🚀 Starting Davami Backend Server...");
 console.log("=================================");
