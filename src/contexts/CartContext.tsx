@@ -94,7 +94,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({
       toast.success("Item added to cart!");
     } catch (error: any) {
       console.error("Failed to add to cart:", error);
-      toast.error(error.message || "Failed to add item to cart");
+      if (error.status === 0) {
+        toast.error(
+          "Please start the backend server to use cart functionality",
+        );
+      } else {
+        toast.error(error.message || "Failed to add item to cart");
+      }
       throw error;
     }
   };
