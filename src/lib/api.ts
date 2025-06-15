@@ -162,7 +162,6 @@ export const productsApi = {
       }
       throw error;
     }
-    }
   },
 
   getById: async (id: string) => {
@@ -178,7 +177,6 @@ export const productsApi = {
         return product;
       }
       throw error;
-    }
     }
   },
 
