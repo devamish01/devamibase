@@ -29,6 +29,12 @@ const setBackendAvailability = (available: boolean) => {
   lastCheck = Date.now();
 };
 
+// Export function to reset backend availability (useful when backend starts)
+export const resetBackendAvailability = () => {
+  backendAvailable = null;
+  lastCheck = 0;
+};
+
 // Helper to get auth token
 const getAuthToken = () => {
   return localStorage.getItem("auth_token");
