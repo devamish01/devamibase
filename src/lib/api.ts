@@ -124,24 +124,73 @@ export const productsApi = {
     sortBy?: string;
     sortOrder?: string;
   }) => {
-    const queryParams = new URLSearchParams();
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString());
+    try {
+      const queryParams = new URLSearchParams();
+      if (params) {
+        Object.entries(params).forEach(([key, value]) => {
+          if (value !== undefined) {
+            queryParams.append(key, value.toString());
+          }
+        });
+      }
+      const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
+      return await makeRequest(`/products${query}`);
+    } catch (error: any) {
+      if (error.status === 0) {
+        // Backend not available, use mock data
+        console.warn("⚠️ Backend not available, using mock data");
+        let filteredProducts = [...mockProducts];
+
+        // Apply filtering if needed
+        if (params?.category) {
+          filteredProducts = filteredProducts.filter(
+            (p) => p.category === params.category,
+          );
         }
-      });
+        if (params?.search) {
+          const search = params.search.toLowerCase();
+          filteredProducts = filteredProducts.filter(
+            (p) =>
+              p.title.toLowerCase().includes(search) ||
+              p.description.toLowerCase().includes(search),
+          );
+        }
+
+        return { products: filteredProducts };
+      }
+      throw error;
     }
-    const query = queryParams.toString() ? `?${queryParams.toString()}` : "";
-    return makeRequest(`/products${query}`);
   },
 
   getById: async (id: string) => {
-    return makeRequest(`/products/${id}`);
+    try {
+      return await makeRequest(`/products/${id}`);
+    } catch (error: any) {
+      if (error.status === 0) {
+        // Backend not available, use mock data
+        console.warn("⚠️ Backend not available, using mock data");
+        const product = mockProducts.find((p) => p.id === id);
+        if (!product) {
+          throw new ApiError(404, "Product not found");
+        }
+        return product;
+      }
+      throw error;
+    }
   },
 
   getCategories: async () => {
-    return makeRequest("/products/data/categories");
+    try {
+      return await makeRequest("/products/data/categories");
+    } catch (error: any) {
+      if (error.status === 0) {
+        // Backend not available, use mock data
+        console.warn("⚠️ Backend not available, using mock data");
+        const categories = [...new Set(mockProducts.map((p) => p.category))];
+        return categories;
+      }
+      throw error;
+    }
   },
 
   create: async (productData: any) => {
