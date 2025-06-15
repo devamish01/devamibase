@@ -14,6 +14,7 @@ import Register from "./pages/Register";
 import Checkout from "./pages/Checkout";
 import OrderSuccess from "./pages/OrderSuccess";
 import Profile from "./pages/Profile";
+import Setup from "./pages/Setup";
 import NotFound from "./pages/NotFound";
 
 function App() {
@@ -39,6 +40,7 @@ function App() {
                 />
                 <Route path="/profile" element={<Profile />} />
                 <Route path="/admin" element={<Admin />} />
+                <Route path="/setup" element={<Setup />} />
                 {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
                 <Route path="*" element={<NotFound />} />
               </Routes>
