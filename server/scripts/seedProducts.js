@@ -1,16 +1,14 @@
 import mongoose from "mongoose";
 import dotenv from "dotenv";
 import { Product, User } from "../models/index.js";
+import { connectDB, disconnectDB } from "../db.js";
 
 dotenv.config();
 
 const seedData = async () => {
   try {
     // Connect to MongoDB
-    await mongoose.connect(
-      process.env.MONGODB_URI || "mongodb://localhost:27017/davami",
-    );
-    console.log("📦 Connected to MongoDB");
+    await connectDB();
 
     // Clear existing products
     await Product.deleteMany({});
@@ -231,8 +229,7 @@ const seedData = async () => {
   } catch (error) {
     console.error("❌ Seed error:", error);
   } finally {
-    await mongoose.disconnect();
-    console.log("📦 Disconnected from MongoDB");
+    await disconnectDB();
   }
 };
 
