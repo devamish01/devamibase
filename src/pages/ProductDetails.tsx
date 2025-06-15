@@ -54,8 +54,14 @@ export default function ProductDetails() {
 
     if (!product) return;
 
+    const productId = product._id || product.id;
+    if (!productId) {
+      toast.error("Invalid product ID");
+      return;
+    }
+
     try {
-      await addToCart(product._id);
+      await addToCart(productId);
     } catch (error) {
       // Error is already handled in the cart context
     }
@@ -135,7 +141,16 @@ export default function ProductDetails() {
           {/* Product Images */}
           <div className="space-y-6">
             <ProductCarousel
-              images={product.images.map((img: any) => img.url)}
+              images={
+                product.images
+                  ? Array.isArray(product.images) &&
+                    typeof product.images[0] === "string"
+                    ? (product.images as string[])
+                    : (product.images as any[]).map(
+                        (img: any) => img.url || img,
+                      )
+                  : []
+              }
               title={product.title}
             />
           </div>
