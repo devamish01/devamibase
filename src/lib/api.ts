@@ -18,6 +18,7 @@ const getAuthToken = () => {
 
 // Import mock data as fallback
 import { mockProducts } from "./mockData";
+import { silentFetch } from "./silentFetch";
 
 // Helper to make authenticated requests
 const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
@@ -34,7 +35,7 @@ const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
   }
 
   try {
-    const response = await fetch(url, {
+    const response = await silentFetch(url, {
       ...options,
       headers,
     });
@@ -55,17 +56,19 @@ const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
       throw error;
     }
 
-    // Check if this is a network error (backend not available)
+    // Check if this is our custom network error from silentFetch
+    if (error instanceof Error && error.message === "NETWORK_ERROR") {
+      // Silently handle network errors when backend is not running
+      throw new ApiError(0, "Backend server is not available");
+    }
+
+    // Check for other network errors as fallback
     if (
       error instanceof TypeError &&
       (error.message.includes("fetch") ||
         error.message.includes("Failed to fetch") ||
-        error.message.includes("NetworkError") ||
-        error.message.includes("ERR_NETWORK") ||
-        error.message.includes("ECONNREFUSED"))
+        error.message.includes("NetworkError"))
     ) {
-      // Silently handle network errors when backend is not running
-      // Don't log anything - this is expected when backend is not running
       throw new ApiError(0, "Backend server is not available");
     }
 
