@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useParams, Link, Navigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -9,21 +10,71 @@ import {
   MessageCircle,
   Phone,
   Mail,
+  Loader2,
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
 import { Separator } from "../components/ui/separator";
 import ProductCarousel from "../components/ProductCarousel";
-import { getProductById } from "../lib/mockData";
+import { productsApi } from "../lib/api";
+import { useCart } from "../contexts/CartContext";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
 
 export default function ProductDetails() {
   const { id } = useParams<{ id: string }>();
+  const [product, setProduct] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  useEffect(() => {
+    const fetchProduct = async () => {
+      if (!id) return;
+
+      try {
+        const response = await productsApi.getById(id);
+        setProduct(response);
+      } catch (error: any) {
+        console.error("Failed to fetch product:", error);
+        toast.error("Product not found");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [id]);
+
+  const handleAddToCart = async () => {
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to cart");
+      return;
+    }
+
+    if (!product) return;
+
+    try {
+      await addToCart(product._id);
+    } catch (error) {
+      // Error is already handled in the cart context
+    }
+  };
 
   if (!id) {
     return <Navigate to="/" replace />;
   }
 
-  const product = getProductById(id);
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="h-12 w-12 animate-spin text-primary-600 mx-auto mb-4" />
+          <p className="text-slate-600">Loading product...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!product) {
     return (
@@ -83,7 +134,10 @@ export default function ProductDetails() {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
           {/* Product Images */}
           <div className="space-y-6">
-            <ProductCarousel images={product.images} title={product.title} />
+            <ProductCarousel
+              images={product.images.map((img: any) => img.url)}
+              title={product.title}
+            />
           </div>
 
           {/* Product Information */}
@@ -184,10 +238,11 @@ export default function ProductDetails() {
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
                   size="lg"
+                  onClick={handleAddToCart}
                   className="flex-1 bg-davami-gradient hover:opacity-90 text-white border-0 px-8 py-4 text-lg font-semibold shadow-davami-lg"
                 >
                   <ShoppingCart className="h-5 w-5 mr-2" />
-                  Buy Now
+                  Add to Cart
                 </Button>
                 <Button
                   variant="outline"

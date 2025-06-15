@@ -2,13 +2,47 @@ import { Link } from "react-router-dom";
 import { Eye, ShoppingCart, Star } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
-import type { Product } from "../lib/mockData";
+import { useCart } from "../contexts/CartContext";
+import { useAuth } from "../contexts/AuthContext";
+import { toast } from "sonner";
+
+interface Product {
+  _id: string;
+  title: string;
+  description: string;
+  price: number;
+  images: { url: string }[];
+  thumbnail: { url: string };
+  features: string[];
+  technologies: string[];
+  category: string;
+  inStock: boolean;
+}
 
 interface ProductCardProps {
   product: Product;
 }
 
 export default function ProductCard({ product }: ProductCardProps) {
+  const { addToCart } = useCart();
+  const { isAuthenticated } = useAuth();
+
+  const handleAddToCart = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isAuthenticated) {
+      toast.error("Please login to add items to cart");
+      return;
+    }
+
+    try {
+      await addToCart(product._id);
+    } catch (error) {
+      // Error is already handled in the cart context
+    }
+  };
+
   return (
     <div className="group bg-white rounded-2xl shadow-md hover:shadow-davami-lg transition-all duration-300 overflow-hidden hover:-translate-y-1">
       {/* Image Container */}
@@ -37,6 +71,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               </Link>
               <Button
                 size="sm"
+                onClick={handleAddToCart}
                 className="bg-davami-gradient hover:opacity-90 text-white border-0 shadow-lg"
               >
                 <ShoppingCart className="h-4 w-4" />

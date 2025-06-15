@@ -1,11 +1,23 @@
 import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, X, ShoppingBag, User } from "lucide-react";
+import { Link, useLocation, useNavigate } from "react-router-dom";
+import { Menu, X, ShoppingBag, User, LogOut, Settings } from "lucide-react";
 import { Button } from "./ui/button";
+import { useAuth } from "../contexts/AuthContext";
+import { useCart } from "../contexts/CartContext";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "./ui/dropdown-menu";
 
 export default function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const location = useLocation();
+  const navigate = useNavigate();
+  const { user, isAuthenticated, logout } = useAuth();
+  const { itemCount } = useCart();
 
   const navigation = [
     { name: "Home", href: "/" },
@@ -54,23 +66,64 @@ export default function Navigation() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center space-x-4">
+            {/* Cart */}
             <Button variant="ghost" size="sm" className="relative">
               <ShoppingBag className="h-5 w-5" />
-              <span className="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
-                3
-              </span>
+              {itemCount > 0 && (
+                <span className="absolute -top-2 -right-2 bg-primary-600 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+                  {itemCount}
+                </span>
+              )}
             </Button>
-            <Link to="/admin">
-              <Button variant="ghost" size="sm">
-                <User className="h-5 w-5" />
-              </Button>
-            </Link>
-            <Button
-              size="sm"
-              className="bg-davami-gradient hover:opacity-90 text-white border-0"
-            >
-              Get Started
-            </Button>
+
+            {/* User Menu */}
+            {isAuthenticated ? (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex items-center space-x-2"
+                  >
+                    <User className="h-5 w-5" />
+                    <span className="hidden lg:block">{user?.name}</span>
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  <DropdownMenuItem onClick={() => navigate("/profile")}>
+                    <User className="mr-2 h-4 w-4" />
+                    Profile
+                  </DropdownMenuItem>
+                  {user?.role === "admin" && (
+                    <DropdownMenuItem onClick={() => navigate("/admin")}>
+                      <Settings className="mr-2 h-4 w-4" />
+                      Admin Panel
+                    </DropdownMenuItem>
+                  )}
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem onClick={logout} className="text-red-600">
+                    <LogOut className="mr-2 h-4 w-4" />
+                    Logout
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            ) : (
+              <div className="flex items-center space-x-2">
+                <Link to="/login">
+                  <Button variant="ghost" size="sm">
+                    Sign In
+                  </Button>
+                </Link>
+                <Link to="/register">
+                  <Button
+                    size="sm"
+                    className="bg-davami-gradient hover:opacity-90 text-white border-0"
+                  >
+                    Get Started
+                  </Button>
+                </Link>
+              </div>
+            )}
           </div>
 
           {/* Mobile menu button */}
@@ -110,17 +163,67 @@ export default function Navigation() {
               <div className="pt-4 space-y-2">
                 <Button variant="outline" className="w-full justify-start">
                   <ShoppingBag className="h-4 w-4 mr-2" />
-                  Cart (3)
+                  Cart ({itemCount})
                 </Button>
-                <Link to="/admin" className="block">
-                  <Button variant="outline" className="w-full justify-start">
-                    <User className="h-4 w-4 mr-2" />
-                    Admin
-                  </Button>
-                </Link>
-                <Button className="w-full bg-davami-gradient hover:opacity-90 text-white border-0">
-                  Get Started
-                </Button>
+
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/profile" className="block">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        Profile
+                      </Button>
+                    </Link>
+                    {user?.role === "admin" && (
+                      <Link to="/admin" className="block">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start"
+                          onClick={() => setIsMenuOpen(false)}
+                        >
+                          <Settings className="h-4 w-4 mr-2" />
+                          Admin Panel
+                        </Button>
+                      </Link>
+                    )}
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start text-red-600 hover:text-red-700"
+                      onClick={() => {
+                        logout();
+                        setIsMenuOpen(false);
+                      }}
+                    >
+                      <LogOut className="h-4 w-4 mr-2" />
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/login" className="block">
+                      <Button
+                        variant="outline"
+                        className="w-full justify-start"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        <User className="h-4 w-4 mr-2" />
+                        Sign In
+                      </Button>
+                    </Link>
+                    <Link to="/register" className="block">
+                      <Button
+                        className="w-full bg-davami-gradient hover:opacity-90 text-white border-0"
+                        onClick={() => setIsMenuOpen(false)}
+                      >
+                        Get Started
+                      </Button>
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>

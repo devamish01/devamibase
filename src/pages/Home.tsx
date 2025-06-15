@@ -1,26 +1,46 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Hero from "../components/Hero";
 import ProductCard from "../components/ProductCard";
 import { Button } from "../components/ui/button";
 import { Badge } from "../components/ui/badge";
-import { mockProducts, getAllCategories } from "../lib/mockData";
-import { Filter, Search, Grid, List } from "lucide-react";
+import { productsApi } from "../lib/api";
+import { Filter, Search, Grid, List, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 export default function Home() {
   const [selectedCategory, setSelectedCategory] = useState<string>("All");
   const [searchTerm, setSearchTerm] = useState<string>("");
   const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [products, setProducts] = useState<any[]>([]);
+  const [categories, setCategories] = useState<string[]>(["All"]);
+  const [loading, setLoading] = useState(true);
 
-  const categories = ["All", ...getAllCategories()];
+  // Fetch products and categories
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [productsResponse, categoriesResponse] = await Promise.all([
+          productsApi.getAll({
+            category: selectedCategory === "All" ? undefined : selectedCategory,
+            search: searchTerm || undefined,
+          }),
+          productsApi.getCategories(),
+        ]);
 
-  const filteredProducts = mockProducts.filter((product) => {
-    const matchesCategory =
-      selectedCategory === "All" || product.category === selectedCategory;
-    const matchesSearch =
-      product.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      product.description.toLowerCase().includes(searchTerm.toLowerCase());
-    return matchesCategory && matchesSearch;
-  });
+        setProducts(productsResponse.products);
+        setCategories(["All", ...categoriesResponse]);
+      } catch (error: any) {
+        console.error("Failed to fetch products:", error);
+        toast.error("Failed to load products");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [selectedCategory, searchTerm]);
+
+  const filteredProducts = products;
 
   return (
     <div className="min-h-screen">
@@ -117,7 +137,6 @@ export default function Home() {
             <p className="text-slate-600">
               Showing{" "}
               <span className="font-semibold">{filteredProducts.length}</span>{" "}
-              of <span className="font-semibold">{mockProducts.length}</span>{" "}
               products
             </p>
             {searchTerm && (
@@ -133,7 +152,14 @@ export default function Home() {
           </div>
 
           {/* Products Grid */}
-          {filteredProducts.length > 0 ? (
+          {loading ? (
+            <div className="flex items-center justify-center py-16">
+              <div className="text-center">
+                <Loader2 className="h-12 w-12 animate-spin text-primary-600 mx-auto mb-4" />
+                <p className="text-slate-600">Loading products...</p>
+              </div>
+            </div>
+          ) : filteredProducts.length > 0 ? (
             <div
               className={
                 viewMode === "grid"
@@ -143,7 +169,7 @@ export default function Home() {
             >
               {filteredProducts.map((product, index) => (
                 <div
-                  key={product.id}
+                  key={product._id}
                   className="animate-fade-in"
                   style={{ animationDelay: `${index * 0.1}s` }}
                 >
