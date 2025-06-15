@@ -4,6 +4,7 @@ import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Navigation from "./components/Navigation";
 import BackendStatusNotification from "./components/BackendStatusNotification";
+import ErrorBoundary from "./components/ErrorBoundary";
 import Home from "./pages/Home";
 import ProductDetails from "./pages/ProductDetails";
 import About from "./pages/About";
@@ -19,44 +20,46 @@ import NotFound from "./pages/NotFound";
 
 function App() {
   return (
-    <AuthProvider>
-      <CartProvider>
-        <BrowserRouter>
-          <div className="min-h-screen bg-white">
-            <Navigation />
-            <BackendStatusNotification />
-            <main>
-              <Routes>
-                <Route path="/" element={<Home />} />
-                <Route path="/product/:id" element={<ProductDetails />} />
-                <Route path="/about" element={<About />} />
-                <Route path="/contact" element={<Contact />} />
-                <Route path="/login" element={<Login />} />
-                <Route path="/register" element={<Register />} />
-                <Route path="/checkout" element={<Checkout />} />
-                <Route
-                  path="/order-success/:orderId"
-                  element={<OrderSuccess />}
-                />
-                <Route path="/profile" element={<Profile />} />
-                <Route path="/admin" element={<Admin />} />
-                <Route path="/setup" element={<Setup />} />
-                {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </main>
-            <Toaster
-              position="top-right"
-              richColors
-              closeButton
-              toastOptions={{
-                duration: 3000,
-              }}
-            />
-          </div>
-        </BrowserRouter>
-      </CartProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <CartProvider>
+          <BrowserRouter>
+            <div className="min-h-screen bg-white">
+              <Navigation />
+              <BackendStatusNotification />
+              <main>
+                <Routes>
+                  <Route path="/" element={<Home />} />
+                  <Route path="/product/:id" element={<ProductDetails />} />
+                  <Route path="/about" element={<About />} />
+                  <Route path="/contact" element={<Contact />} />
+                  <Route path="/login" element={<Login />} />
+                  <Route path="/register" element={<Register />} />
+                  <Route path="/checkout" element={<Checkout />} />
+                  <Route
+                    path="/order-success/:orderId"
+                    element={<OrderSuccess />}
+                  />
+                  <Route path="/profile" element={<Profile />} />
+                  <Route path="/admin" element={<Admin />} />
+                  <Route path="/setup" element={<Setup />} />
+                  {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </main>
+              <Toaster
+                position="top-right"
+                richColors
+                closeButton
+                toastOptions={{
+                  duration: 3000,
+                }}
+              />
+            </div>
+          </BrowserRouter>
+        </CartProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }
 
