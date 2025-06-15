@@ -7,12 +7,13 @@ import { useAuth } from "../contexts/AuthContext";
 import { toast } from "sonner";
 
 interface Product {
-  _id: string;
+  _id?: string;
+  id?: string;
   title: string;
   description: string;
   price: number;
-  images: { url: string }[];
-  thumbnail: { url: string };
+  images: { url: string }[] | string[];
+  thumbnail: { url: string } | string;
   features: string[];
   technologies: string[];
   category: string;
@@ -36,19 +37,33 @@ export default function ProductCard({ product }: ProductCardProps) {
       return;
     }
 
+    const productId = product._id || product.id;
+    if (!productId) {
+      toast.error("Invalid product ID");
+      return;
+    }
+
     try {
-      await addToCart(product._id);
+      await addToCart(productId);
     } catch (error) {
       // Error is already handled in the cart context
     }
   };
+
+  // Handle different thumbnail formats
+  const thumbnailUrl =
+    typeof product.thumbnail === "string"
+      ? product.thumbnail
+      : product.thumbnail?.url || "";
+
+  const productId = product._id || product.id;
 
   return (
     <div className="group bg-white rounded-2xl shadow-md hover:shadow-davami-lg transition-all duration-300 overflow-hidden hover:-translate-y-1">
       {/* Image Container */}
       <div className="relative aspect-[4/3] overflow-hidden bg-gradient-to-br from-slate-100 to-slate-200">
         <img
-          src={product.thumbnail}
+          src={thumbnailUrl}
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700"
         />
@@ -60,7 +75,7 @@ export default function ProductCard({ product }: ProductCardProps) {
               {product.category}
             </Badge>
             <div className="flex items-center space-x-2">
-              <Link to={`/product/${product.id}`}>
+              <Link to={`/product/${productId}`}>
                 <Button
                   size="sm"
                   className="bg-white/90 text-slate-900 hover:bg-white border-0 shadow-lg"
@@ -139,7 +154,7 @@ export default function ProductCard({ product }: ProductCardProps) {
             </div>
             <div className="text-xs text-slate-500">Starting from</div>
           </div>
-          <Link to={`/product/${product.id}`}>
+          <Link to={`/product/${productId}`}>
             <Button
               variant="outline"
               size="sm"
