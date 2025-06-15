@@ -88,9 +88,64 @@ The styling system supports dark mode through CSS variables and media queries.
 ## Development Workflow
 
 - **Development**: `npm run dev` - Starts the development server with HMR
+- **Backend**: `npm run backend` - Starts the backend API server
 - **Production Build**: `npm run build` - Creates optimized production build
 - **Type Checking**: `npm run typecheck` - Validates TypeScript types
 - **Run tests**: `npm test` - Run all .spec tests
+
+## 🚀 Quick Start with Backend API
+
+### Option 1: Automatic Setup (Recommended)
+
+```bash
+# Start the backend server with automatic setup
+npm run backend
+```
+
+This will:
+
+- Install backend dependencies
+- Create environment files
+- Seed database with sample products
+- Start the API server on port 5000
+
+### Option 2: Manual Setup
+
+```bash
+# Navigate to server directory
+cd server
+
+# Install dependencies
+npm install
+
+# Create environment file
+cp .env.example .env
+
+# Seed database
+npm run seed
+
+# Start backend
+npm run dev
+```
+
+### Enable Backend Mode
+
+1. Start the backend server (using either option above)
+2. In your browser, click "Check Again" in the demo notification
+3. The app will automatically switch to backend mode
+4. You now have full eCommerce functionality!
+
+### Default Admin Credentials
+
+- **Email**: admin@davami.com
+- **Password**: admin123
+
+## 🌐 Production Deployment
+
+For complete production deployment instructions, see:
+
+- **[PRODUCTION_DEPLOYMENT.md](./PRODUCTION_DEPLOYMENT.md)** - Comprehensive deployment guide
+- **[deployment-configs/](./deployment-configs/)** - Ready-to-use configuration files
 
 ## Architecture Overview
 
