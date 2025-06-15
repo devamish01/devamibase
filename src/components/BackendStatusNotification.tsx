@@ -13,6 +13,12 @@ export default function BackendStatusNotification() {
     if (dismissed === "true") {
       setShowNotification(false);
       setDismissed(true);
+    } else {
+      // Show notification after a short delay to allow page to load
+      const timer = setTimeout(() => {
+        setShowNotification(true);
+      }, 2000);
+      return () => clearTimeout(timer);
     }
   }, []);
 
