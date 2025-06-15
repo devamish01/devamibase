@@ -60,9 +60,12 @@ const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
       error instanceof TypeError &&
       (error.message.includes("fetch") ||
         error.message.includes("Failed to fetch") ||
-        error.message.includes("NetworkError"))
+        error.message.includes("NetworkError") ||
+        error.message.includes("ERR_NETWORK") ||
+        error.message.includes("ECONNREFUSED"))
     ) {
       // Silently handle network errors when backend is not running
+      // Don't log anything - this is expected when backend is not running
       throw new ApiError(0, "Backend server is not available");
     }
 
