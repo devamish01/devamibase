@@ -3,6 +3,7 @@ import { Toaster } from "sonner";
 import { AuthProvider } from "./contexts/AuthContext";
 import { CartProvider } from "./contexts/CartContext";
 import Navigation from "./components/Navigation";
+import BackendStatusNotification from "./components/BackendStatusNotification";
 import Home from "./pages/Home";
 import ProductDetails from "./pages/ProductDetails";
 import About from "./pages/About";
@@ -22,6 +23,7 @@ function App() {
         <BrowserRouter>
           <div className="min-h-screen bg-white">
             <Navigation />
+            <BackendStatusNotification />
             <main>
               <Routes>
                 <Route path="/" element={<Home />} />
