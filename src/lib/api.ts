@@ -1,3 +1,6 @@
+// Import mock data as fallback
+import { mockProducts } from "./mockData";
+
 const API_BASE_URL =
   import.meta.env.VITE_API_URL || "http://localhost:5000/api";
 
@@ -11,45 +14,38 @@ class ApiError extends Error {
   }
 }
 
-// Quick check if backend is likely available
-const isBackendLikelyAvailable = (): boolean => {
-  const now = Date.now();
-
-  // If we've never checked or it's been a while, assume it might be available
-  if (backendAvailable === null || now - lastCheck > CHECK_INTERVAL) {
-    return true;
-  }
-
-  return backendAvailable;
-};
-
-// Update backend availability status
-const setBackendAvailability = (available: boolean) => {
-  backendAvailable = available;
-  lastCheck = Date.now();
-};
-
-// Export function to reset backend availability (useful when backend starts)
-export const resetBackendAvailability = () => {
-  backendAvailable = null;
-  lastCheck = 0;
-};
+// Demo mode management
+let demoMode = true; // Start in demo mode by default
+let backendCheckAttempted = false;
 
 // Helper to get auth token
 const getAuthToken = () => {
   return localStorage.getItem("auth_token");
 };
 
-// Import mock data as fallback
-import { mockProducts } from "./mockData";
+// Function to check if we should use demo mode
+const shouldUseDemoMode = (): boolean => {
+  return demoMode;
+};
 
-// Simple flag to track if backend is available
-let backendAvailable: boolean | null = null;
-let lastCheck = 0;
-const CHECK_INTERVAL = 30000; // 30 seconds
+// Function to enable backend mode (when user explicitly wants to try)
+export const enableBackendMode = () => {
+  demoMode = false;
+  backendCheckAttempted = false;
+};
 
-// Helper to make authenticated requests
+// Function to force demo mode
+export const enableDemoMode = () => {
+  demoMode = true;
+};
+
+// Helper to make authenticated requests (only when not in demo mode)
 const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
+  // If in demo mode, immediately throw a network error
+  if (shouldUseDemoMode()) {
+    throw new ApiError(0, "Demo mode - backend not available");
+  }
+
   const url = `${API_BASE_URL}${endpoint}`;
   const token = getAuthToken();
 
@@ -78,15 +74,14 @@ const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
       );
     }
 
-    // If we get here, backend is available
-    setBackendAvailability(true);
+    // If we get here, backend is working - stay in backend mode
     return await response.json();
   } catch (error) {
     if (error instanceof ApiError) {
       throw error;
     }
 
-    // Mark backend as unavailable on network errors
+    // On any network error, switch back to demo mode
     if (
       error instanceof TypeError &&
       (error.message.includes("fetch") ||
@@ -95,7 +90,7 @@ const makeRequest = async (endpoint: string, options: RequestInit = {}) => {
         error.message.includes("ERR_NETWORK") ||
         error.message.includes("ECONNREFUSED"))
     ) {
-      setBackendAvailability(false);
+      demoMode = true; // Switch back to demo mode
       throw new ApiError(0, "Backend server is not available");
     }
 
@@ -150,7 +145,7 @@ export const authApi = {
   },
 };
 
-// Products API
+// Products API with demo mode fallbacks
 export const productsApi = {
   getAll: async (params?: {
     page?: number;
@@ -160,8 +155,8 @@ export const productsApi = {
     sortBy?: string;
     sortOrder?: string;
   }) => {
-    // If backend is known to be unavailable, return mock data immediately
-    if (!isBackendLikelyAvailable()) {
+    // Always return mock data in demo mode
+    if (shouldUseDemoMode()) {
       let filteredProducts = [...mockProducts];
 
       // Apply filtering if needed
@@ -220,8 +215,8 @@ export const productsApi = {
   },
 
   getById: async (id: string) => {
-    // If backend is known to be unavailable, return mock data immediately
-    if (!isBackendLikelyAvailable()) {
+    // Always return mock data in demo mode
+    if (shouldUseDemoMode()) {
       const product = mockProducts.find((p) => p.id === id);
       if (!product) {
         throw new ApiError(404, "Product not found");
@@ -245,8 +240,8 @@ export const productsApi = {
   },
 
   getCategories: async () => {
-    // If backend is known to be unavailable, return mock data immediately
-    if (!isBackendLikelyAvailable()) {
+    // Always return mock data in demo mode
+    if (shouldUseDemoMode()) {
       const categories = [...new Set(mockProducts.map((p) => p.category))];
       return categories;
     }
@@ -284,13 +279,26 @@ export const productsApi = {
   },
 };
 
-// Cart API
+// Cart API (demo mode returns empty cart)
 export const cartApi = {
   get: async () => {
+    if (shouldUseDemoMode()) {
+      return {
+        user: null,
+        items: [],
+        totalAmount: 0,
+      };
+    }
     return makeRequest("/cart");
   },
 
   add: async (productId: string, quantity: number = 1) => {
+    if (shouldUseDemoMode()) {
+      throw new ApiError(
+        0,
+        "Please enable backend mode to use cart functionality",
+      );
+    }
     return makeRequest("/cart/add", {
       method: "POST",
       body: JSON.stringify({ productId, quantity }),
@@ -298,6 +306,12 @@ export const cartApi = {
   },
 
   update: async (productId: string, quantity: number) => {
+    if (shouldUseDemoMode()) {
+      throw new ApiError(
+        0,
+        "Please enable backend mode to use cart functionality",
+      );
+    }
     return makeRequest(`/cart/update/${productId}`, {
       method: "PUT",
       body: JSON.stringify({ quantity }),
@@ -305,23 +319,38 @@ export const cartApi = {
   },
 
   remove: async (productId: string) => {
+    if (shouldUseDemoMode()) {
+      throw new ApiError(
+        0,
+        "Please enable backend mode to use cart functionality",
+      );
+    }
     return makeRequest(`/cart/remove/${productId}`, {
       method: "DELETE",
     });
   },
 
   clear: async () => {
+    if (shouldUseDemoMode()) {
+      throw new ApiError(
+        0,
+        "Please enable backend mode to use cart functionality",
+      );
+    }
     return makeRequest("/cart/clear", {
       method: "DELETE",
     });
   },
 
   getCount: async () => {
+    if (shouldUseDemoMode()) {
+      return { itemCount: 0 };
+    }
     return makeRequest("/cart/count");
   },
 };
 
-// Orders API
+// Orders API (demo mode returns empty orders)
 export const ordersApi = {
   create: async (orderData: {
     shippingAddress: any;
@@ -339,6 +368,18 @@ export const ordersApi = {
     limit?: number;
     status?: string;
   }) => {
+    if (shouldUseDemoMode()) {
+      return {
+        orders: [],
+        pagination: {
+          currentPage: 1,
+          totalPages: 0,
+          totalOrders: 0,
+          hasNextPage: false,
+          hasPrevPage: false,
+        },
+      };
+    }
     const queryParams = new URLSearchParams();
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
@@ -561,5 +602,8 @@ export const contactApi = {
     });
   },
 };
+
+// Export demo mode status check
+export const isDemoMode = () => demoMode;
 
 export { ApiError };
