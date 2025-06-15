@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Server, AlertTriangle, CheckCircle, X } from "lucide-react";
 
 export default function BackendStatusNotification() {
-  const [showNotification, setShowNotification] = useState(true);
+  const [showNotification, setShowNotification] = useState(false);
   const [dismissed, setDismissed] = useState(false);
 
   // Check if user has dismissed this notification in this session
